@@ -1,0 +1,12 @@
+{
+  "name": "anatomic-pg",
+  "version": "0.3.0",
+  "main": "index.js",
+  "repository": "github:add1ed/anatomic-pg",
+  "author": "add1ed",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "8.5.1",
+    "pg-query-stream": "4.2.4"
+  }
+}
