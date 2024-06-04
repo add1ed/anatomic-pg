@@ -1,7 +1,7 @@
 const { performance } = require("perf_hooks");
 const QueryStream = require("pg-query-stream");
 
-module.exports = function (options = {}) {
+module.exports = function(options = {}) {
   const pg = options.pg || require("pg");
   const name = options.name || "postgres";
 
@@ -36,7 +36,7 @@ module.exports = function (options = {}) {
       const context = {
         query: { ...query, ...(logResults ? { results } : {}) },
       };
-      log.info(context, "query took %dms", Math.ceil(elapsed));
+      log.debug(context, "query took %dms", Math.ceil(elapsed));
       return results;
     } catch (err) {
       const elapsed = performance.now() - start;
@@ -51,9 +51,8 @@ module.exports = function (options = {}) {
 
   function start(dependencies) {
     config = dependencies.config;
-    log =
-      (dependencies.logger && dependencies.logger.child({ component: name })) ||
-      console;
+    log = dependencies.logger?.child?.({ component: name })
+      || dependencies.logger || noop();
 
     if (!config) throw new Error("config is required");
     if (!config.connectionString) {
@@ -65,7 +64,7 @@ module.exports = function (options = {}) {
     pool = new pg.Pool(config);
 
     pool.on("connect", async (client) => {
-      client.on("notice", function (notice) {
+      client.on("notice", function(notice) {
         switch (notice.severity) {
           case "DEBUG": {
             log.debug(notice.message);
@@ -105,7 +104,7 @@ module.exports = function (options = {}) {
         }
       }
     });
-    pool.on("error", function (err) {
+    pool.on("error", function(err) {
       log.warn("An idle client has experienced an error", err);
     });
 
@@ -122,10 +121,18 @@ module.exports = function (options = {}) {
 
   function getConnectionUrl() {
     const url = new URL(config.connectionString);
-    return `postgres://${url.host || "localhost:5432"}${
-      url.pathname || "/postgres"
-    }`;
+    return `postgres://${url.host || "localhost:5432"}${url.pathname || "/postgres"
+      }`;
   }
 
   return { start, stop };
 };
+
+function noop() {
+  return {
+    error() { },
+    warn() { },
+    info() { },
+    debug() { },
+  };
+}
